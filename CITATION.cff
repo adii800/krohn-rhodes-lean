@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite it using the metadata below."
+title: "Krohn–Rhodes prime decomposition in Lean 4"
+abstract: >-
+  A Lean 4 and Mathlib formalization of the Krohn–Rhodes prime decomposition theorem for
+  finite monoids, following the local-divisor proof of Diekert, Kufleitner and Steinberg.
+  The proofs were written by Claude Code agents under the direction of Aditya Rao.
+type: software
+authors:
+  - given-names: Aditya
+    family-names: Rao
+license: Apache-2.0
+repository-code: "https://github.com/adii800/krohn-rhodes-lean"
+keywords:
+  - Lean 4
+  - Mathlib
+  - Krohn–Rhodes theorem
+  - finite semigroups
+  - wreath product
+  - formalized mathematics
+references:
+  - type: article
+    authors:
+      - given-names: Kenneth
+        family-names: Krohn
+      - given-names: John
+        family-names: Rhodes
+    title: "Algebraic theory of machines. I. Prime decomposition theorem for finite semigroups and machines"
+    journal: "Transactions of the American Mathematical Society"
+    volume: 116
+    start: 450
+    end: 464
+    year: 1965
+  - type: article
+    authors:
+      - given-names: Volker
+        family-names: Diekert
+      - given-names: Manfred
+        family-names: Kufleitner
+      - given-names: Benjamin
+        family-names: Steinberg
+    title: "The Krohn–Rhodes Theorem and Local Divisors"
+    journal: "Fundamenta Informaticae"
+    volume: 116
+    year: 2012
+    url: "https://arxiv.org/abs/1111.1585"
