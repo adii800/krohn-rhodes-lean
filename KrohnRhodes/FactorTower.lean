@@ -1,34 +1,33 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import KrohnRhodes.Foundations.WreathProduct
-import KrohnRhodes.Foundations.GreenRelations
-import KrohnRhodes.Foundations.LocalDivisor
-import KrohnRhodes.Foundations.KrasnerKaloujnine
-import KrohnRhodes.Foundations.Division
-import Mathlib
-import KrohnRhodes.Foundations.MonoidWreathBridge
-import KrohnRhodes.Foundations.Cayley
-import KrohnRhodes.Foundations.ConstantMaps
+module
 
-set_option linter.unusedFintypeInType false
-set_option linter.unusedDecidableInType false
-set_option linter.unusedVariables false
-set_option linter.style.show false
-set_option linter.unusedSectionVars false
+public import KrohnRhodes.Defs
+public import KrohnRhodes.Foundations.WreathProduct
+public import KrohnRhodes.Foundations.LocalDivisor
+public import KrohnRhodes.Foundations.KrasnerKaloujnine
+public import KrohnRhodes.Foundations.Division
+public import Mathlib
+public import KrohnRhodes.Foundations.MonoidWreathBridge
+public import KrohnRhodes.Foundations.Cayley
+public import KrohnRhodes.Foundations.ConstantMaps
 
 /-!
 # Krohn–Rhodes factor towers
 
-This file supplies the vocabulary in which the prime decomposition theorem is stated, and
-the wreath-product algebra used to assemble factor towers.
+This file adds constructors and basic towers for the factor vocabulary of `KrohnRhodes.Defs`,
+and the wreath-product algebra used to assemble factor towers.
 
 * `KRFactor` — a finite monoid together with a *witnessed* flag: either every element is
   aperiodic, or the carrier carries a simple group structure whose underlying monoid is the
   factor's monoid. Constructors `KRFactor.ofAperiodic` and `KRFactor.ofSimpleGroup`.
 * `DivTowerWreath M [F₁, …, Fₖ]` — `M` divides the right-iterated wreath product
-  `F₁ ≀ (F₂ ≀ (⋯ ≀ (Fₖ ≀ 1)))`. It is defined by recursion on the list: `M` divides
+  `F₁ ≀ (F₂ ≀ (⋯ ≀ (Fₖ ≀ 1)))`, one level at a time (the equivalence with a single division is
+  explained in its docstring and is not formalized). It is defined by recursion on the list:
+  `M` divides
   `WreathProduct F₁ B Y` for some finite monoid `B` acting on a finite type `Y`, where `B`
   in turn satisfies `DivTowerWreath B [F₂, …, Fₖ]`; the empty list means `M` is trivial.
 * Wreath-product algebra: associativity up to division (`sgDiv_wreath_assoc`, via the
@@ -46,6 +45,14 @@ the wreath-product algebra used to assemble factor towers.
 * [Eilenberg, *Automata, Languages, and Machines, Vol. B*, 1976]
 -/
 
+@[expose] public section
+
+set_option linter.unusedFintypeInType false
+set_option linter.unusedDecidableInType false
+set_option linter.unusedVariables false
+set_option linter.style.show false
+set_option linter.unusedSectionVars false
+
 universe u
 
 open Green
@@ -62,51 +69,17 @@ theorem sgDiv_refl (S : Type u) [Semigroup S] : SgDiv S S := by
 
 A *factor tower* of a finite monoid `M` is an explicit list of Krohn–Rhodes factors
 `[F₁, …, Fₖ]`, each flagged and witnessed as aperiodic or simple group, together with a proof
-that `M` divides the right-iterated wreath product `F₁ ≀ (F₂ ≀ ( ⋯ ≀ Fₖ))`.
+`DivTowerWreath M [F₁, …, Fₖ]` that `M` divides the right-iterated wreath product
+`F₁ ≀ (F₂ ≀ (⋯ ≀ (Fₖ ≀ 1)))` one level at a time. The innermost level `Fₖ ≀ 1` is a finite
+direct power of `Fₖ`, not `Fₖ` itself.
 
-* `KRFactorKind`, `KRFactor` — the two prime flags, and one flagged, witnessed factor.
-* `DivTowerWreath M factors` — the recursive division predicate.
+* `KRFactorKind`, `KRFactor` (the two factor kinds, and one flagged, witnessed factor) and
+  `DivTowerWreath M factors` (the recursive division predicate) are defined in
+  `KrohnRhodes.Defs`; this file adds their constructors and basic towers.
 * `divTowerWreath_wreathStep` — concatenation of towers along a wreath division; the hard step
   (wreath associativity) is `sgDiv_wreath_assoc`.
 -/
 
-/-- The two prime "flags" of a Krohn-Rhodes factor: a factor is either an
-    **aperiodic** monoid or a **simple group**.  These are exactly the irreducible atoms of the
-    Krohn-Rhodes decomposition. -/
-inductive KRFactorKind where
-  /-- The factor is a finite aperiodic monoid. -/
-  | aperiodic : KRFactorKind
-  /-- The factor is a finite simple group. -/
-  | simpleGroup : KRFactorKind
-  deriving DecidableEq, Repr
-
-/-- A single **Krohn-Rhodes factor**: a finite monoid `carrier` together with a
-    flag `kind` and a *proof* that `carrier` really satisfies its flag.  The
-    proof field is what makes the decomposition genuinely informative (not a
-    vacuous existential): an `aperiodic` factor must actually be aperiodic
-    (every element has a trivial `H`-class), and a `simpleGroup` factor must
-    actually carry a `Group` instance that is `IsSimpleGroup`. -/
-structure KRFactor where
-  /-- The carrier monoid of the factor. -/
-  carrier : Type u
-  /-- The factor's monoid structure. -/
-  [mon : Monoid carrier]
-  /-- The factor is finite. -/
-  [fin : Finite carrier]
-  /-- Whether the factor is an aperiodic atom or a simple-group atom. -/
-  kind : KRFactorKind
-  /-- The flag is *witnessed*: an `aperiodic`-flagged factor is genuinely
-      aperiodic; a `simpleGroup`-flagged factor genuinely carries a finite
-      simple-group structure on `carrier` **whose underlying monoid is the
-      factor's own monoid field** (`g.toMonoid = mon`).  Recording the
-      `g.toMonoid = mon` compatibility lets one transport monoid-indexed data
-      between `F.mon` and the witnessed group instance `g`. -/
-  isKind :
-    (kind = KRFactorKind.aperiodic ∧ (∀ a : carrier, IsAperiodicElem a)) ∨
-    (kind = KRFactorKind.simpleGroup ∧
-      ∃ (g : Group carrier), g.toMonoid = mon ∧ @IsSimpleGroup carrier g)
-
-attribute [instance] KRFactor.mon KRFactor.fin
 
 namespace KRFactor
 
@@ -139,29 +112,6 @@ def ofSimpleGroup (G : Type u) [g : Group G] [Finite G] [IsSimpleGroup G] :
 
 end KRFactor
 
-/-- **The recursive division predicate of a factor tower.**
-
-    `DivTowerWreath M factors` says that `M` divides the **right-iterated
-    wreath product** of the factor list `factors`:
-
-    * `[]`           — `M` divides the trivial monoid `PUnit` (the empty product;
-                       this forces `M` to be a single point up to division).
-    * `F :: rest`    — there is a finite base monoid `B` that itself decomposes
-                       via the *tail* `rest` (`DivTowerWreath B rest`), and `M`
-                       divides `WreathProduct F.carrier B Y` for some finite type
-                       `Y` on which `B` acts: the head atom `F.carrier` sits in
-                       the decoration slot over the base `B`.
-
-    Unfolding the recursion, `DivTowerWreath M [F₁, …, Fₖ]` exhibits
-    `M ≼ F₁ ≀ (F₂ ≀ ( ⋯ ≀ (Fₖ ≀ PUnit)))`, the standard Krohn-Rhodes iterated
-    wreath product over the explicit atom list. -/
-def DivTowerWreath : (M : Type u) → [Monoid M] → [Finite M] → List KRFactor.{u} → Prop
-  | M, _, _, [] => SgDiv M PUnit.{u + 1}
-  | M, _, _, (F :: rest) =>
-      ∃ (B : Type u) (_ : Monoid B) (_ : Finite B)
-        (Y : Type u) (_ : Fintype Y) (_ : MulAction B Y),
-        DivTowerWreath B rest ∧
-        SgDiv M (WreathProduct F.carrier B Y)
 
 @[simp] theorem divTowerWreath_nil (M : Type u) [Monoid M] [Finite M] :
     DivTowerWreath M [] = SgDiv M PUnit.{u + 1} := rfl
@@ -176,7 +126,7 @@ theorem divTowerWreath_cons (M : Type u) [Monoid M] [Finite M]
 
 /-! ### Base-case constructors for the factor tower -/
 
-/-- A single finite atom `A` over a *subsingleton* base `B` divides `A ≀_B B`
+/-- A monoid `A` over a *subsingleton* base `B` divides `A ≀_B B`
     (the wreath of `A` over the trivial base, with `B` acting on itself).  This
     is the "one rung" building block: when `B` is a single point the wreath
     multiplication collapses to a copy of `A`.
@@ -242,8 +192,8 @@ theorem divTowerWreath_ofSimpleGroup (G : Type u) [Group G] [Finite G]
 
 The tower predicate is monotone under semigroup division on the left: if `S`
 divides `T` and `T` divides the iterated wreath of a factor list, then so does
-`S`.  It is used to transfer a tower along a division
-`SgDiv S (WreathProduct A B X)`. -/
+`S`.  It is used in the empty case of `divTowerWreath_wreathStep` (along `SgDiv S B`) and in
+`Solution.lean` (along `SgDiv M ↥(closureMonoid act)`). -/
 
 /-- **Division transfers the factor tower.**  If `SgDiv S T` and
     `DivTowerWreath T factors`, then `DivTowerWreath S factors`. -/
@@ -272,17 +222,15 @@ of the wreath product up to division**: a wreath nested in the decoration slot
 re-associates into the base.
 
 For the left-action convention
-`(p * q).func x = p.func (q.base • x) * q.func x`, the precise associativity is
+`(p * q).func x = p.func (q.base • x) * q.func x`, writing `A ≀_Z C` for
+`WreathProduct A C Z`, the associativity is
 
-  `(G ≀_{B'} B') ≀_X B  ≼  G ≀_W (B' × X)`,   where `W = B' ≀_X B`,
+  `(G ≀_Y B') ≀_X B  ≼  G ≀_{Y × X} W`,   where `W = B' ≀_X B`,
 
-with `W` acting on the product state space `B' × X` by the imprimitive action
-`⟨γ, b⟩ • (p, x) = (γ x * p, b • x)`.  This is the standard wreath-associativity
-theorem (Eilenberg, *Automata, Languages and Machines*, Vol. B, Ch. III; Wells,
-"Some applications of the wreath product construction", 1976), realised by the
-canonical "unscrambling" embedding `Phi` below.  The `q.base • x` cocycle threads
-through both levels exactly because the inner state action of `B'` on `B'` is left
-multiplication. -/
+with `W` acting on the product state space `Y × X` by
+`⟨γ, b⟩ • (y, x) = (γ x • y, b • x)` (`WreathAssoc.actW`). It holds for every action of `B'`
+on `Y` and is realised by the injective semigroup homomorphism `WreathAssoc.Phi` below. For
+right actions this is Lemma 2.1 of Diekert–Kufleitner–Steinberg. -/
 
 namespace WreathAssoc
 
@@ -292,6 +240,7 @@ variable (G B' B Y X : Type u) [Monoid G] [Monoid B'] [Monoid B]
 /-- The imprimitive action of the base wreath `W = B' ≀_X B` on the product state
     space `Y × X`: `⟨γ, b⟩ • (y, x) = (γ x • y, b • x)` — the inner base `B'`
     acts on the inner state `Y`, the outer base `B` acts on the outer state `X`. -/
+@[instance_reducible]
 def actW : MulAction (WreathProduct B' B X) (Y × X) where
   smul w yx := (w.func yx.2 • yx.1, w.base • yx.2)
   one_smul := by
@@ -307,7 +256,7 @@ def actW : MulAction (WreathProduct B' B X) (Y × X) where
 attribute [local instance] actW
 
 /-- The canonical unscrambling embedding
-    `(G ≀_{B'} Y) ≀_X B →ₙ* G ≀_W (Y × X)` realising wreath associativity:
+    `(G ≀_Y B') ≀_X B →ₙ* G ≀_{Y × X} (B' ≀_X B)` realising wreath associativity:
     the two-level decoration `F` becomes the one-level decoration
     `(y, x) ↦ (F.func x).func y`, and the bases collect to
     `⟨fun x => (F.func x).base, F.base⟩`. -/
@@ -338,8 +287,8 @@ theorem Phi_injective : Function.Injective (Phi G B' B Y X) := by
 
 end WreathAssoc
 
-/-- **Wreath associativity, up to division.**  `(G ≀_{B'} Y) ≀_X B` divides
-    `G ≀_W (Y × X)` where the base `W = B' ≀_X B` acts on `Y × X` by
+/-- **Wreath associativity, up to division.**  `(G ≀_Y B') ≀_X B` divides
+    `G ≀_{Y × X} W`, where the base `W = B' ≀_X B` acts on `Y × X` by
     `WreathAssoc.actW` (the inner base on the inner state, the outer base on the
     outer state).  Fully proved via the unscrambling embedding `WreathAssoc.Phi`
     (an injective semigroup homomorphism). -/
@@ -350,7 +299,7 @@ theorem sgDiv_wreath_assoc (G B' B Y X : Type u)
     letI := WreathAssoc.actW B' B Y X
     SgDiv (WreathProduct (WreathProduct G B' Y) B X)
           (WreathProduct G (WreathProduct B' B X) (Y × X)) := by
-  letI := WreathAssoc.actW B' B Y X
+  let := WreathAssoc.actW B' B Y X
   exact KrohnRhodes.sgDiv_of_injective_hom (sgDiv_refl _)
     (WreathAssoc.Phi G B' B Y X) (WreathAssoc.Phi_injective G B' B Y X)
 
@@ -437,7 +386,7 @@ theorem divTowerWreath_wreathStep :
   | nil =>
       intro S A B X _ _ _ _ _ _ _ _ hdiv hA towB hB
       rw [divTowerWreath_nil] at hA
-      haveI : Subsingleton A := subsingleton_of_sgDiv_punit A hA
+      have : Subsingleton A := subsingleton_of_sgDiv_punit A hA
       have hSB : SgDiv S B :=
         KrohnRhodes.sgDiv_trans hdiv
           (sgDiv_wreath_of_subsingleton_decoration A B X)
@@ -449,8 +398,8 @@ theorem divTowerWreath_wreathStep :
       rw [List.cons_append, divTowerWreath_cons]
       -- The new base is the wreath `B' ≀_X B` (using the *outer* state `X`), acting
       -- on the product state `Y' × X` via `WreathAssoc.actW`.
-      haveI : Fintype B' := Fintype.ofFinite B'
-      letI := WreathAssoc.actW B' B Y' X
+      have : Fintype B' := Fintype.ofFinite B'
+      let := WreathAssoc.actW B' B Y' X
       refine ⟨WreathProduct B' B X, inferInstance, inferInstance,
         Y' × X, inferInstance, WreathAssoc.actW B' B Y' X, ?_, ?_⟩
       · -- The base `B' ≀_X B` decomposes via `rest ++ towB` by the IH at `rest`:
@@ -458,8 +407,8 @@ theorem divTowerWreath_wreathStep :
         -- `B` via `towB`.
         exact IH (S := WreathProduct B' B X) (A := B') (B := B) (X := X)
           (sgDiv_refl _) hB'rest hB
-      · -- The head SgDiv: push `A ≼ F.carrier ≀_{B'} Y'` into the decoration, then
-        -- re-associate `(F.carrier ≀_{B'} Y') ≀_X B  ≼  F.carrier ≀_{B'≀_X B} (Y'×X)`.
+      · -- The head SgDiv: push `A ≼ F.carrier ≀_{Y'} B'` into the decoration, then
+        -- re-associate `(F.carrier ≀_{Y'} B') ≀_X B  ≼  F.carrier ≀_{Y' × X} (B' ≀_X B)`.
         have h1 : SgDiv (WreathProduct A B X)
             (WreathProduct (WreathProduct F.carrier B' Y') B X) :=
           sgDiv_wreath_decoration_mono A (WreathProduct F.carrier B' Y') B X hAdiv
@@ -542,7 +491,8 @@ theorem subFactorsDivide_append {M : Type u} [Monoid M]
     divides its right-iterated wreath product, and the guarantee that every
     factor's carrier divides `M`. -/
 structure KRFactorTowerSub (M : Type u) [Monoid M] [Finite M] where
-  /-- The explicit list of Krohn-Rhodes prime factors. -/
+  /-- The explicit list of factors, each flagged and witnessed as aperiodic or as a simple
+      group. -/
   factors : List KRFactor.{u}
   /-- `M` divides the right-iterated wreath product of `factors`. -/
   divides : DivTowerWreath M factors
@@ -552,8 +502,9 @@ structure KRFactorTowerSub (M : Type u) [Monoid M] [Finite M] where
 /-! ### Subquotient-faithful Krohn-Rhodes for finite groups -/
 
 /-- **Subquotient-faithful Krohn-Rhodes for finite groups.** Every finite group
-    `G` has a subquotient-faithful factor tower: simple-group factors, each
-    dividing `G`, whose iterated wreath product `G` divides.  Proved by strong
+    `G` with `Nat.card G ≤ n` has a factor tower in which every factor divides `G`
+    (`KRFactorTowerSub G`); the construction uses only simple-group factors, but the
+    statement does not record this.  Proved by strong
     induction on `Nat.card G`, peeling a proper normal subgroup `N` and recursing
     on the subgroup `↥N` (`÷ G`) and the quotient `G/N` (`÷ G`), threading the
     `MonoidDivides`-to-`G` witness through every factor (subgroup-divides /
@@ -571,21 +522,21 @@ theorem group_subquotient_faithful_aux (n : ℕ) :
     intro G _ _ hcard
     by_cases hss : Subsingleton G
     · exact ⟨⟨[], divTowerWreath_nil_of_subsingleton G, subFactorsDivide_nil G⟩⟩
-    haveI hnontriv : Nontrivial G := not_subsingleton_iff_nontrivial.mp hss
+    have hnontriv : Nontrivial G := not_subsingleton_iff_nontrivial.mp hss
     by_cases hsimple : IsSimpleGroup G
     · refine ⟨⟨[KRFactor.ofSimpleGroup G], divTowerWreath_ofSimpleGroup G, ?_⟩⟩
       exact subFactorsDivide_single _ (monoidDivides_refl (KRFactor.ofSimpleGroup G).carrier)
     · -- `G` not simple: peel a proper nontrivial normal subgroup.
       have hex : ∃ N : Subgroup G, N.Normal ∧ N ≠ ⊥ ∧ N ≠ ⊤ := by
         by_contra hne
-        push_neg at hne
+        push Not at hne
         apply hsimple
         refine ⟨fun H hH => ?_⟩
         by_cases h1 : H = ⊥
         · exact Or.inl h1
         · exact Or.inr (hne H hH h1)
       obtain ⟨N, hNnormal, hNbot, hNtop⟩ := hex
-      haveI : N.Normal := hNnormal
+      have : N.Normal := hNnormal
       obtain ⟨hcardN, hcardQ⟩ :
           Nat.card N < Nat.card G ∧ Nat.card (G ⧸ N) < Nat.card G := by
         have hmul : Nat.card (G ⧸ N) * Nat.card N = Nat.card G := by
@@ -594,7 +545,7 @@ theorem group_subquotient_faithful_aux (n : ℕ) :
         have hQ_pos : 0 < Nat.card (G ⧸ N) := Nat.card_pos
         have hN_ne_one : Nat.card N ≠ 1 := by
           intro hN; apply hNbot
-          haveI : Subsingleton N := by
+          have : Subsingleton N := by
             rw [Nat.card_eq_one_iff_unique] at hN; exact hN.1
           exact Subgroup.eq_bot_of_subsingleton (H := N)
         have hQ_ne_one : Nat.card (G ⧸ N) ≠ 1 := by
@@ -609,7 +560,7 @@ theorem group_subquotient_faithful_aux (n : ℕ) :
       have hQ_le : Nat.card (G ⧸ N) ≤ k := by omega
       obtain ⟨towN⟩ := IH (N : Type u) hN_le
       obtain ⟨towQ⟩ := IH (G ⧸ N) hQ_le
-      haveI : Fintype (G ⧸ N) := Fintype.ofFinite _
+      have : Fintype (G ⧸ N) := Fintype.ofFinite _
       have hdiv : SgDiv G (WreathProduct (N : Type u) (G ⧸ N) (G ⧸ N)) :=
         KrohnRhodes.group_sgdiv_via_normal N
       refine ⟨⟨towN.factors ++ towQ.factors, ?_, ?_⟩⟩

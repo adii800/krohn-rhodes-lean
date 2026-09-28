@@ -1,18 +1,17 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import KrohnRhodes.Foundations.GreenRelations
-import KrohnRhodes.Foundations.WreathProduct
-import Mathlib
-import KrohnRhodes.Foundations.MonoidWreathBridge
-import KrohnRhodes.Foundations.KrasnerKaloujnine
-import KrohnRhodes.Foundations.Division
-import KrohnRhodes.Foundations.ConstantMaps
+module
 
-set_option linter.style.show false
-set_option linter.unusedDecidableInType false
-set_option linter.unusedSectionVars false
+public import KrohnRhodes.Defs
+public import KrohnRhodes.Foundations.WreathProduct
+public import Mathlib
+public import KrohnRhodes.Foundations.MonoidWreathBridge
+public import KrohnRhodes.Foundations.KrasnerKaloujnine
+public import KrohnRhodes.Foundations.Division
+public import KrohnRhodes.Foundations.ConstantMaps
 
 /-!
 # Cayley's theorem for monoids
@@ -20,6 +19,12 @@ set_option linter.unusedSectionVars false
 * `monoid_faithful_self` — every monoid acts faithfully on itself: the left-regular
   representation `MulAction.toEndHom : N →* Function.End N` is injective.
 -/
+
+@[expose] public section
+
+set_option linter.style.show false
+set_option linter.unusedDecidableInType false
+set_option linter.unusedSectionVars false
 
 namespace KrohnRhodes
 
@@ -29,7 +34,7 @@ universe u
 variable {M : Type u} [Monoid M] [Finite M]
 
 
-/-- **Every finite monoid acts faithfully on itself.**  The left-regular
+/-- **Every monoid acts faithfully on itself.**  The left-regular
 representation `MulAction.toEndHom : N →* Function.End N` (sending `n` to
 left-multiplication by `n`) is injective: `n` is recovered as the image of
 `1` under left-multiplication by `n`. -/

@@ -1,18 +1,20 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import Mathlib
+module
+
+public import KrohnRhodes.Defs
+public import Mathlib
 
 /-!
-# Wreath products of monoids and semigroup division
+# The monoid structure of the wreath product
 
-* `SgDiv S T` — semigroup division: `S` is a homomorphic image of a subsemigroup of `T`.
-* `WreathProduct A B X` — the wreath product of monoids `A` and `B` relative to an action of
-  `B` on a type `X`: pairs `(f : X → A, b : B)` with
-  `(p * q).func x = p.func (q.base • x) * q.func x` and `(p * q).base = p.base * q.base`
-  (the lemmas `WreathProduct.mul_func` / `mul_base`), with its `Monoid` and `Finite` instances.
-  Its monoid is that of the transformation wreath product `(A, A) ≀ (X, B)`.
+`SgDiv` and `WreathProduct` with its multiplication are defined in `KrohnRhodes.Defs`. This
+file adds the identity, the lemmas `WreathProduct.mul_func` / `mul_base` / `one_func` /
+`one_base`, and the `Monoid` and `Finite` instances: the monoid of the transformation wreath
+product `(A, A) ≀ (X, B)`.
 
 ## References
 
@@ -20,45 +22,17 @@ import Mathlib
 * [Eilenberg, *Automata, Languages, and Machines, Vol. B*, 1976]
 -/
 
+@[expose] public section
+
 universe u v w
 
-/-! ### Semigroup division -/
 
-/-- Semigroup `S` divides `T` if `S` is a homomorphic image of a subsemigroup of `T`. -/
-def SgDiv (S T : Type*) [Mul S] [Mul T] : Prop :=
-  ∃ (U : Subsemigroup T) (φ : U →ₙ* S), Function.Surjective φ
-
-/-! ### Wreath product construction -/
-
-/-- The wreath product of monoids `A` and `B` relative to an action of `B` on a type `X`.
-    Elements are pairs `(f, b)` where `f : X → A` and `b : B`.
-
-    Multiplication: `(f₁, b₁) * (f₂, b₂) = (fun x => f₁ (b₂ • x) * f₂ x, b₁ * b₂)` -/
-@[ext]
-structure WreathProduct (A : Type u) (B : Type v) (X : Type w)
-    [Monoid A] [Monoid B] [MulAction B X] where
-  /-- The decoration function mapping each point of `X` to an element of `A`. -/
-  func : X → A
-  /-- The bottom component from `B`. -/
-  base : B
 
 namespace WreathProduct
 
 variable {A : Type u} {B : Type v} {X : Type w}
 variable [Monoid A] [Monoid B] [MulAction B X]
 
-/-- Multiplication in the wreath product.
-    Convention: `(f₁, b₁) * (f₂, b₂) = (x ↦ f₁(b₂ • x) * f₂(x), b₁ * b₂)`.
-
-    This is the standard "left regular" convention where the **right** factor's base
-    element acts on the **left** factor's decoration. This convention ensures
-    associativity with a standard left `MulAction`.
-
-    Note: some references use `f₁(x) * f₂(b₁⁻¹ • x)` (group case) or
-    `f₁(x) * f₂(b₁ • x)` (right-action convention). Our choice is equivalent
-    up to reversing the action. -/
-instance : Mul (WreathProduct A B X) where
-  mul p q := ⟨fun x => p.func (q.base • x) * q.func x, p.base * q.base⟩
 
 /-- The identity element of the wreath product. -/
 instance : One (WreathProduct A B X) where

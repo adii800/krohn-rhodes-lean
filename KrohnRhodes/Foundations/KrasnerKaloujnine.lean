@@ -1,14 +1,16 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import KrohnRhodes.Foundations.WreathProduct
-import KrohnRhodes.Foundations.MonoidWreathBridge
-import Mathlib
-import Mathlib.GroupTheory.SemidirectProduct
-import Mathlib.GroupTheory.RegularWreathProduct
+module
 
-set_option linter.unusedDecidableInType false
+public import KrohnRhodes.Defs
+public import KrohnRhodes.Foundations.WreathProduct
+public import KrohnRhodes.Foundations.MonoidWreathBridge
+public import Mathlib
+public import Mathlib.GroupTheory.SemidirectProduct
+public import Mathlib.GroupTheory.RegularWreathProduct
 
 /-!
 # The Krasner–Kaloujnine embedding
@@ -27,6 +29,10 @@ via `Function.surjInv`. The component `n_g(q) := s(q)⁻¹ * g * s(π(g)⁻¹ * 
 because its image under `π` is `q⁻¹ * π(g) * π(g)⁻¹ * q = 1`.
 -/
 
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
+
 namespace KrohnRhodes
 
 universe u
@@ -41,21 +47,21 @@ section Krasner
 variable (N : Subgroup G) [N.Normal]
 
 /-- A noncomputable section `G ⧸ N → G` of the quotient map. -/
-private noncomputable def section_ : G ⧸ N → G :=
+noncomputable def section_ : G ⧸ N → G :=
   Function.surjInv (QuotientGroup.mk'_surjective N)
 
 /-- The section is a right inverse of the quotient map. -/
-private theorem section_apply (q : G ⧸ N) :
+theorem section_apply (q : G ⧸ N) :
     QuotientGroup.mk' N (section_ N q) = q :=
   Function.surjInv_eq _ _
 
 /-- The "left component" of the Krasner-Kaloujnine homomorphism, before showing
 it lands in `N`. -/
-private noncomputable def krasnerLeftRaw (g : G) (q : G ⧸ N) : G :=
+noncomputable def krasnerLeftRaw (g : G) (q : G ⧸ N) : G :=
   (section_ N q)⁻¹ * g * section_ N ((QuotientGroup.mk' N g)⁻¹ * q)
 
 /-- `krasnerLeftRaw g q` lies in `N` (kernel of the quotient map). -/
-private theorem krasnerLeftRaw_mem (g : G) (q : G ⧸ N) :
+theorem krasnerLeftRaw_mem (g : G) (q : G ⧸ N) :
     krasnerLeftRaw N g q ∈ N := by
   -- N = ker(QuotientGroup.mk' N), so it suffices to show mk' applied to the element is 1.
   -- Compute: π(s(q)⁻¹ * g * s(π(g)⁻¹ * q)) = q⁻¹ * π(g) * (π(g)⁻¹ * q) = 1.
@@ -66,15 +72,15 @@ private theorem krasnerLeftRaw_mem (g : G) (q : G ⧸ N) :
   exact (QuotientGroup.eq_one_iff _).mp hone
 
 /-- The "left component" of the Krasner-Kaloujnine homomorphism, valued in `N`. -/
-private noncomputable def krasnerLeft (g : G) (q : G ⧸ N) : N :=
+noncomputable def krasnerLeft (g : G) (q : G ⧸ N) : N :=
   ⟨krasnerLeftRaw N g q, krasnerLeftRaw_mem N g q⟩
 
 /-- The Krasner-Kaloujnine map `G → N ≀ᵣ (G ⧸ N)` (as bare data). -/
-private noncomputable def krasnerKaloujnineFun (g : G) : N ≀ᵣ (G ⧸ N) :=
+noncomputable def krasnerKaloujnineFun (g : G) : N ≀ᵣ (G ⧸ N) :=
   ⟨krasnerLeft N g, QuotientGroup.mk' N g⟩
 
 /-- Multiplicativity of the Krasner-Kaloujnine map. -/
-private theorem krasnerKaloujnine_map_mul (g₁ g₂ : G) :
+theorem krasnerKaloujnine_map_mul (g₁ g₂ : G) :
     krasnerKaloujnineFun N (g₁ * g₂) =
       krasnerKaloujnineFun N g₁ * krasnerKaloujnineFun N g₂ := by
   -- Right component:  π(g₁ g₂) = π(g₁) * π(g₂).
@@ -112,7 +118,7 @@ private theorem krasnerKaloujnine_map_mul (g₁ g₂ : G) :
     exact map_mul (QuotientGroup.mk' N) g₁ g₂
 
 /-- Triviality at 1 of the Krasner-Kaloujnine map. -/
-private theorem krasnerKaloujnine_map_one :
+theorem krasnerKaloujnine_map_one :
     krasnerKaloujnineFun N 1 = 1 := by
   refine RegularWreathProduct.ext ?_ ?_
   · funext q
@@ -141,7 +147,7 @@ theorem krasnerKaloujnine_injective :
   -- From φ(g₁) = φ(g₂), read off π(g₁) = π(g₂) and the left components agree.
   have hright : QuotientGroup.mk' N g₁ = QuotientGroup.mk' N g₂ := by
     have := congrArg RegularWreathProduct.right h
-    simpa using this
+    simpa [krasnerKaloujnine_hom, krasnerKaloujnineFun] using this
   have hleft : ∀ q : G ⧸ N,
       (krasnerKaloujnine_hom N g₁).left q = (krasnerKaloujnine_hom N g₂).left q := by
     intro q

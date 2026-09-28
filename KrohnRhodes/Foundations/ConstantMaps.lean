@@ -1,18 +1,16 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import KrohnRhodes.Foundations.GreenRelations
-import KrohnRhodes.Foundations.WreathProduct
-import Mathlib
-import KrohnRhodes.Foundations.MonoidWreathBridge
-import KrohnRhodes.Foundations.KrasnerKaloujnine
-import KrohnRhodes.Foundations.Division
+module
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedDecidableInType false
-set_option linter.unusedFintypeInType false
-set_option linter.style.show false
+public import KrohnRhodes.Defs
+public import KrohnRhodes.Foundations.WreathProduct
+public import Mathlib
+public import KrohnRhodes.Foundations.MonoidWreathBridge
+public import KrohnRhodes.Foundations.KrasnerKaloujnine
+public import KrohnRhodes.Foundations.Division
 
 /-!
 # Constant maps and aperiodicity
@@ -27,6 +25,13 @@ Convention: `Function.End Q` multiplies by composition, `(f * g) x = f (g x)`.
   monoids used in the decomposition genuine aperiodic factors.
 -/
 
+@[expose] public section
+
+set_option linter.unusedSectionVars false
+set_option linter.unusedDecidableInType false
+set_option linter.unusedFintypeInType false
+set_option linter.style.show false
+
 namespace KrohnRhodes
 
 
@@ -35,7 +40,8 @@ universe u
 /-! ## Reset / rank-drop transformations: the constant maps
 
 A transformation `t : Function.End Q` *drops rank* if it is not
-surjective.  The extreme rank-drop — rank `1` — is a **constant map**
+surjective.  For `Q` with at least two points, the extreme rank-drop — rank `1` — is a
+**constant map**
 `constEnd q : Q → Q`, `_ ↦ q`.  The constant maps are the aperiodic building
 blocks of the reset monoids used in the decomposition.
 
@@ -59,7 +65,7 @@ transformation monoid `Function.End Q`. -/
 def constEnd (q : Q) : Function.End Q := fun _ => q
 
 /-- A transformation of `Q` *is constant* if it equals `constEnd q` for
-some `q` — equivalently, it has rank `1` (it is the extreme rank-drop). -/
+some `q` — equivalently, its image is a single point. -/
 def IsConstEnd (t : Function.End Q) : Prop := ∃ q : Q, t = constEnd q
 
 theorem isConstEnd_constEnd (q : Q) : IsConstEnd (constEnd q) := ⟨q, rfl⟩
@@ -137,7 +143,7 @@ theorem isAperiodicElem_of_id_or_const
       -- `ht : b * t = a = 1`; with `b = constEnd q`, `constEnd q * t = constEnd q`.
       rw [hbq, constEnd_mul, haId] at ht
       -- `constEnd q = 1` ⟹ `Q` subsingleton.
-      haveI : Subsingleton Q := by
+      have : Subsingleton Q := by
         refine ⟨fun x y => ?_⟩
         -- `congrFun ht x : constEnd q x = (1 : Function.End Q) x`, i.e. `q = x`.
         have hx : q = x := congrFun ht x

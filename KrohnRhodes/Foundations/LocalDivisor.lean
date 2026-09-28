@@ -1,16 +1,19 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import Mathlib
-import KrohnRhodes.Foundations.GreenRelations
-import KrohnRhodes.Foundations.WreathProduct
+module
+
+public import KrohnRhodes.Defs
+public import Mathlib
+public import KrohnRhodes.Foundations.WreathProduct
 
 /-!
 # Monoid division and local divisors
 
-* `KrohnRhodes.MonoidDivides M N` — `M` is a quotient of a submonoid of `N`;
-  `MonoidDivides.trans` shows division is transitive.
+* `KrohnRhodes.MonoidDivides M N` (defined in `KrohnRhodes.Defs`) — `M` is a quotient of a
+  submonoid of `N`; `MonoidDivides.trans` shows division is transitive.
 * `KrohnRhodes.LocalDivisor M c` — the local divisor `M_c` of `M` at `c`: the set
   `cM ∩ Mc` with the product `x ∘ y = x · y₀` for `y = c · y₀` and identity `c`, with its
   `Monoid` and `Finite` instances; `LocalDivisor.localDivides` shows `M_c` divides `M`.
@@ -20,6 +23,8 @@ import KrohnRhodes.Foundations.WreathProduct
 * [V. Diekert, M. Kufleitner, B. Steinberg, *The Krohn–Rhodes Theorem and Local Divisors*,
   Fundamenta Informaticae 116 (2012); arXiv:1111.1585]
 -/
+
+@[expose] public section
 
 open FreeMonoid Computability Pointwise
 
@@ -31,10 +36,6 @@ namespace KrohnRhodes
 
 /-! ### Monoid division -/
 
-/-- A monoid `M` divides a monoid `N` if `M` is a quotient of a submonoid of `N`.
-Equivalently, there exists a surjective monoid homomorphism from a submonoid of `N` onto `M`. -/
-def MonoidDivides (M : Type*) (N : Type*) [Monoid M] [Monoid N] : Prop :=
-  ∃ (S : Submonoid N) (φ : S →* M), Function.Surjective φ
 
 /-- **Monoid division is transitive.** If `M ≼ N` (witnessed by `S ≤ N`, `φ : S ↠ M`) and
 `N ≼ P` (witnessed by `T ≤ P`, `ψ : T ↠ N`), then `M ≼ P`. The witnessing submonoid of `P` is
@@ -60,7 +61,8 @@ theorem MonoidDivides.trans {M N P : Type*} [Monoid M] [Monoid N] [Monoid P]
 
 /-! #### The local divisor `M_c = cM ∩ Mc`
 
-For `c ∈ M`, the local divisor (Diekert–Kufleitner–Steinberg) is
+For `c ∈ M`, Diekert, Kufleitner and Steinberg define the local divisor `M_c` on `cMc ∪ {c}`
+and note (§2.5) that their proofs work equally for `cM ∩ Mc`. This file uses
 
 > `M_c := cM ∩ Mc`, with the *twisted product* `x ∘ y := x · y₀` (any `y₀` with `y = c·y₀`),
 > identity `c`.

@@ -1,16 +1,15 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import KrohnRhodes.Foundations.GreenRelations
-import KrohnRhodes.Foundations.WreathProduct
-import Mathlib
-import KrohnRhodes.Foundations.MonoidWreathBridge
-import KrohnRhodes.Foundations.KrasnerKaloujnine
+module
 
-set_option linter.unusedSectionVars false
-set_option linter.unusedDecidableInType false
-set_option linter.style.show false
+public import KrohnRhodes.Defs
+public import KrohnRhodes.Foundations.WreathProduct
+public import Mathlib
+public import KrohnRhodes.Foundations.MonoidWreathBridge
+public import KrohnRhodes.Foundations.KrasnerKaloujnine
 
 /-!
 # Semigroup division: transitivity and embeddings
@@ -22,6 +21,12 @@ set_option linter.style.show false
 * `sgDiv_of_injective_hom` — if `S` divides `T` and `T` embeds into `W` by an injective
   semigroup homomorphism, then `S` divides `W`.
 -/
+
+@[expose] public section
+
+set_option linter.unusedSectionVars false
+set_option linter.unusedDecidableInType false
+set_option linter.style.show false
 
 namespace KrohnRhodes
 
@@ -73,7 +78,7 @@ theorem sgDiv_trans {S T U : Type u} [Mul S] [Mul T] [Mul U]
     rw [this, hv]
 
 /-- An *injective* monoid homomorphism `f : A →* T` exhibits `A` as a
-division of `T`: the subsemigroup `MonoidHom.mrange f` together with the
+divisor of `T`: the subsemigroup `MonoidHom.mrange f` together with the
 inverse (via `Function.invFun`) is a surjective `→ₙ*` onto `A`. -/
 theorem sgDiv_of_injective_monoidHom {A T : Type u} [Monoid A] [Monoid T]
     (f : A →* T) (hf : Function.Injective f) : SgDiv A T := by

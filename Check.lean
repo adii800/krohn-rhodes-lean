@@ -1,8 +1,11 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import KrohnRhodes.PrimeDecomposition
+module
+
+public import Solution
 
 open KrohnRhodes
 

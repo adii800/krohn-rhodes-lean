@@ -1,17 +1,42 @@
 # Krohn–Rhodes prime decomposition in Lean 4
 
 **Theorem.** Let *M* be a finite monoid. There are finite monoids *F*₁, …, *F*ₖ, each either
-aperiodic or a simple group, such that
+aperiodic or a simple group, such that every *F*ᵢ that is a simple group divides *M* as a monoid,
+and finite monoids *B*₀ = *M*, *B*₁, …, *B*ₖ with *B*ₖ trivial, where each *B*ᵢ (*i* ≥ 1) acts
+on a finite set *Y*ᵢ, such that
 
-> *M* ≺ *F*₁ ≀ (*F*₂ ≀ (⋯ ≀ *F*ₖ))
+> *B*ᵢ₋₁ ≺ *F*ᵢ ≀<sub>*Y*ᵢ</sub> *B*ᵢ   for *i* = 1, …, *k*.
 
-and every *F*ᵢ that is a simple group divides *M*.
+Here *A* ≺ *B* (*A* divides *B*) means that *A* is a homomorphic image of a subsemigroup of *B*;
+a monoid divides *M* as a monoid if it is a quotient of a submonoid of *M*. A finite monoid is
+aperiodic if all of its subgroups are trivial, or equivalently if all of its H-classes are
+singletons. For a monoid *A* and a monoid *B* acting on a set *Y*, the wreath product
+*A* ≀<sub>*Y*</sub> *B* is *A*<sup>*Y*</sup> × *B* with the product
+(*f*, *b*)(*g*, *c*) = (*y* ↦ *f*(*c*·*y*) *g*(*y*), *bc*).
 
-Here *A* ≺ *B* (*A* divides *B*) means that *A* is a homomorphic image of a subsemigroup of *B*.
-A monoid is aperiodic if all of its subgroups are trivial. ≀ is the wreath product of monoids,
-with each level acting on a finite set.
+Equivalently, *M* ≺ *F*₁ ≀ (*F*₂ ≀ (⋯ ≀ (*F*ₖ ≀ 1))) for suitable finite actions at each
+level, where 1 is the trivial monoid, so that the innermost level *F*ₖ ≀ 1 is a finite direct
+power of *F*ₖ. A chain as above gives such a single division because
+*A* ≀<sub>*Y*</sub> *B* ≺ *A* ≀<sub>*W*×*Y*</sub> *W* whenever *B* ≺ *W*, where *W* acts on
+*W* × *Y* by *w*·(*w*′, *y*) = (*ww*′, *y*); conversely, a single division gives a chain. This
+equivalence is not formalized. For *k* = 0 the statement says that *M* is trivial.
 
-In Lean, in [`KrohnRhodes/PrimeDecomposition.lean`](KrohnRhodes/PrimeDecomposition.lean) (namespace `KrohnRhodes`):
+This is the Krohn–Rhodes theorem with arbitrary aperiodic factors in place of copies of the
+flip-flop monoid; see [What it does not cover](#what-it-does-not-cover).
+
+## Context
+
+The Krohn–Rhodes theorem (1965) is the basic decomposition theorem of finite semigroup theory
+and of algebraic automata theory: every finite semigroup divides an iterated wreath product of
+finite simple groups and finite aperiodic semigroups. Diekert, Kufleitner and Steinberg call
+Krohn–Rhodes theory "the closest thing to a Jordan–Hölder theorem for semigroups", and
+Krohn–Rhodes complexity, the least number of group layers needed in such a decomposition, is
+defined from it. Here, as in the classical statement, every simple-group factor divides *M*.
+
+## The statement in Lean
+
+The statement is in [`Challenge.lean`](Challenge.lean), which imports only Mathlib, and it is
+proved in [`Solution.lean`](Solution.lean) (namespace `KrohnRhodes`):
 
 ```lean
 theorem krohn_rhodes_prime_decomposition (M : Type) [Monoid M] [Finite M] :
@@ -23,35 +48,76 @@ A `KRFactorTowerGrp M` consists of:
 - `factors : List KRFactor`: each factor is a finite monoid with a proof that it is either
   aperiodic (every element has a trivial H-class) or a simple group (a simple group structure
   whose underlying monoid is the factor's monoid);
-- `divides : DivTowerWreath M factors`: *M* divides the right-iterated wreath product of the
-  factors;
-- `groupFactorsDivide`: every simple-group factor divides *M*.
+- `divides : DivTowerWreath M factors`: the chain of divisions displayed above;
+- `groupFactorsDivide`: every simple-group factor divides *M* as a monoid.
+
+`DivTowerWreath` is defined by recursion on the list of factors. `DivTowerWreath M []` says that
+*M* divides the trivial monoid, so *M* is trivial. `DivTowerWreath M (F :: rest)` says that there
+are a finite monoid *B* and a finite type *Y* on which *B* acts such that *M* divides
+`WreathProduct F.carrier B Y` and `DivTowerWreath B rest` holds.
 
 The theorem depends only on the axioms `propext`, `Classical.choice` and `Quot.sound`, with no
-`sorry`.
+`sorry`. [Comparator](https://github.com/leanprover/comparator), configured by
+[`comparator.json`](comparator.json), checks that the theorem proved in `Solution.lean` is the
+one stated in `Challenge.lean`, with the same definitions.
 
 ## Source
 
 The theorem is due to K. Krohn and J. Rhodes, *Algebraic theory of machines. I. Prime
 decomposition theorem for finite semigroups and machines*, Trans. Amer. Math. Soc. 116 (1965),
-450–464.
+450–464, [doi:10.1090/S0002-9947-1965-0188316-1](https://doi.org/10.1090/S0002-9947-1965-0188316-1).
 
-The proof formalized here is the local-divisor proof of V. Diekert, M. Kufleitner and
-B. Steinberg, *The Krohn–Rhodes Theorem and Local Divisors*, Fundamenta Informaticae 116 (2012),
-[arXiv:1111.1585](https://arxiv.org/abs/1111.1585): their Theorem 3.1, Corollary 3.2 and
-Theorem 4.1, written for left actions.
+The proof is the local-divisor proof of V. Diekert, M. Kufleitner and B. Steinberg, *The
+Krohn–Rhodes Theorem and Local Divisors*, Fundamenta Informaticae 116 (2012), 65–77,
+[arXiv:1111.1585](https://arxiv.org/abs/1111.1585), written for left actions. Theorem numbers
+refer to version 1 on arXiv.
+
+- By Cayley's theorem, *M* acts faithfully on itself.
+- Theorem 3.1: if a faithful transformation monoid (*X*, *M*) is generated by *A* and *c* ∈ *A*,
+  then the constants closure of (*X*, *M*) divides the wreath product of the closures of
+  (*Xc*, *M*<sub>*c*</sub>) and of (*X* ⊔ *N*, *N*), where *M*<sub>*c*</sub> is the local divisor
+  of *M* at *c* and *N* is the submonoid generated by *A* ∖ {*c*}.
+- Corollary 3.2: if *A* is a minimal generating set and *c* ∈ *A* is not a unit, then
+  *M*<sub>*c*</sub> and *N* are smaller than *M*, so induction on |*M*| reduces to groups with the
+  constant maps adjoined. The simple groups obtained divide *M*, because *M*<sub>*c*</sub> and *N*
+  divide *M*.
+- The groups are then decomposed as in the proof of Theorem 4.1. Lemma 2.9: the constants closure
+  of a faithful group action (*X*, *G*) divides (*X*, *U*<sub>*X*</sub>) ≀ (*G*, *G*), where the
+  reset monoid *U*<sub>*X*</sub> consists of the identity and the constant maps on *X*. Reset
+  monoids are aperiodic. Corollary 2.8: a finite group divides a wreath product of simple groups
+  that divide it; here the step along a normal subgroup *N* uses the Krasner–Kaloujnine embedding
+  of *G* into *N* ≀ (*G*/*N*) instead of the proof of Proposition 2.7.
+
+The Lean proof also differs from the paper in these ways. The local divisor is taken on
+*cM* ∩ *Mc* rather than *cMc* ∪ {*c*}; the paper notes that its proofs work for both. Division is
+semigroup division of monoids rather than strong division of transformation monoids. The towers
+produced by the induction are joined using associativity of the wreath product up to division.
+Theorem 4.1 of the paper goes on to replace each reset monoid by copies of the flip-flop monoid
+(Lemma 2.10 and Example 2.4); that step is not formalized.
+
+## Related formalizations
+
+A web search in September 2026 (Lean and Mathlib, Rocq/Coq, Isabelle and its Archive of Formal
+Proofs, HOL4, Agda) found no earlier machine-checked proof of the Krohn–Rhodes theorem. This is
+not a claim that none exists.
 
 ## What it does not cover
 
 - **Aperiodic factors are not reduced to the flip-flop.** The classical statement takes every
-  aperiodic factor to be the flip-flop monoid *U*₂; this statement only requires the factors to
-  be aperiodic. For an aperiodic *M* it therefore holds with *M* itself as the only factor, so
-  its content is the group part. The proof's aperiodic factors are reset monoids (the identity
-  together with all constant maps on a finite set). Each of these embeds in a direct power of
-  *U*₂, but that step is not part of the formal statement.
+  aperiodic factor to be the flip-flop monoid (*U*₂ in the notation of Diekert, Kufleitner and
+  Steinberg: the identity and the two constant maps on a two-element set). This statement only
+  requires the factors to be aperiodic. For an aperiodic *M* it therefore holds with *M* itself
+  as the only factor; in general it separates the group structure of *M*, as simple groups
+  dividing *M*, from aperiodic factors. The proof's aperiodic factors are reset monoids, each of
+  which embeds in a direct power of *U*₂, but that step is not part of the formal statement.
+- **Monoids, not transformation monoids.** Diekert, Kufleitner and Steinberg state Theorem 4.1
+  for finite transformation monoids, with strong division. The formal statement concerns the
+  monoid *M*, with semigroup division.
 - **Monoids, not semigroups.** The statement is for finite monoids. Finite semigroups are not
   treated separately.
 - **Universe 0.** *M* ranges over `Type`.
+- **No size bounds.** The bounds on the size of the decomposition in Corollaries 3.2 and 4.2 of
+  Diekert, Kufleitner and Steinberg are not formalized.
 
 ## Conventions
 
@@ -64,35 +130,65 @@ Theorem 4.1, written for left actions.
 
 ## Building
 
-Requires [elan](https://github.com/leanprover/elan). The toolchain (Lean 4.28.0) and Mathlib
-(`v4.28.0`) are pinned in `lean-toolchain` and `lake-manifest.json`.
+Requires [elan](https://github.com/leanprover/elan). The toolchain (Lean 4.35.0-rc2) and Mathlib
+(`v4.35.0-rc2`) are pinned in `lean-toolchain` and `lake-manifest.json`.
 
 ```sh
-lake exe cache get        # fetch Mathlib and its prebuilt cache (~1 GB download, ~7 GB on disk)
+lake exe cache get        # fetch Mathlib and its prebuilt cache
 lake build
 lake env lean Check.lean  # prints the statement and its axioms
 ```
 
-## Files
+`scripts/verify-comparator.sh` runs Comparator with `comparator.json`. It needs Linux with
+bubblewrap (`bwrap`), as in the CI workflow.
 
-All paths are under `KrohnRhodes/`.
+## Files
 
 | File | Contents |
 |---|---|
-| `PrimeDecomposition.lean` | The proof and the main theorem |
-| `FactorTower.lean` | `KRFactor`, `DivTowerWreath`, wreath associativity, the group tower |
-| `Foundations/WreathProduct.lean` | `SgDiv`, `WreathProduct` |
-| `Foundations/GreenRelations.lean` | Green's relations `L`, `R`, `H`; `IsAperiodicElem` |
-| `Foundations/LocalDivisor.lean` | `MonoidDivides`; the local divisor `M_c` |
-| `Foundations/KrasnerKaloujnine.lean` | The Krasner–Kaloujnine embedding |
-| `Foundations/MonoidWreathBridge.lean` | Mathlib's regular wreath product → `WreathProduct` |
-| `Foundations/ConstantMaps.lean` | Constant maps; aperiodicity of reset monoids |
-| `Foundations/Cayley.lean` | Cayley's theorem for monoids |
-| `Foundations/Division.lean` | Semigroup-division lemmas |
+| `Challenge.lean` | The definitions and the statement, importing only Mathlib |
+| `Solution.lean` | The proof of the statement |
+| `KrohnRhodes/Defs.lean` | The definitions of `Challenge.lean`, for the library |
+| `KrohnRhodes/PrimeDecomposition.lean` | The induction of Corollary 3.2 (`dks_aux`) |
+| `KrohnRhodes/FactorTower.lean` | Factor constructors, wreath associativity, the group tower |
+| `KrohnRhodes/Foundations/WreathProduct.lean` | The monoid structure of `WreathProduct` |
+| `KrohnRhodes/Foundations/LocalDivisor.lean` | The local divisor *M*<sub>*c*</sub> |
+| `KrohnRhodes/Foundations/KrasnerKaloujnine.lean` | The Krasner–Kaloujnine embedding |
+| `KrohnRhodes/Foundations/MonoidWreathBridge.lean` | Mathlib's regular wreath product → `WreathProduct` |
+| `KrohnRhodes/Foundations/ConstantMaps.lean` | Constant maps; aperiodicity of reset monoids |
+| `KrohnRhodes/Foundations/Cayley.lean` | Cayley's theorem for monoids |
+| `KrohnRhodes/Foundations/Division.lean` | Semigroup-division lemmas |
+
+`formalization.yaml` records the sources, scope, authorship and review of the formalization.
 
 ## Authorship
 
-The proofs were written by Claude Code agents under the direction of Aditya Rao.
+The Lean definitions, statements and proofs were written by Claude Code agents under the
+direction of Aditya Rao, and the documentation and metadata were revised by a Claude Code agent.
+The models used and the review performed are listed in [`formalization.yaml`](formalization.yaml).
+
+## Changes from the first version
+
+The first commit targeted Lean 4.28.0. This version ports it to Lean 4.35.0-rc2 and to the module
+system, and splits the statement from the proof. No statement changed in meaning.
+
+- No declaration was renamed. Eight helpers in `KrasnerKaloujnine.lean` (`section_`,
+  `section_apply`, `krasnerLeftRaw`, `krasnerLeftRaw_mem`, `krasnerLeft`, `krasnerKaloujnineFun`,
+  `krasnerKaloujnine_map_mul`, `krasnerKaloujnine_map_one`) are no longer `private`, because
+  public declarations use them.
+- The definitions that the statement uses moved to `KrohnRhodes/Defs.lean`, which replaces
+  `Foundations/GreenRelations.lean`, and are repeated in `Challenge.lean`. The theorem and
+  `krFactorTowerGrpOf` moved to `Solution.lean`.
+- Proof-only edits for the new toolchain: `push_neg` became `push Not`, `haveI`/`letI` became
+  `have`/`let`, two `simpa` calls name an extra definition to unfold, and the action `actW` is
+  marked `@[instance_reducible]`. A new linter warning about the `Fintype` arguments of
+  `dks_aux` and `dks_aux_group` is switched off instead of changing their statements.
+- The lakefile no longer sets `maxSynthPendingDepth` or `relaxedAutoImplicit`, so the library is
+  elaborated with Lean's default elaboration options, as `Challenge.lean` is when compiled on its
+  own.
+- In Mathlib 4.35, `⊆` on sets elaborates to `≤`, so one hypothesis of `main_decomposition` has a
+  different elaborated form with the same meaning.
+- Several docstrings were corrected.
 
 ## License
 

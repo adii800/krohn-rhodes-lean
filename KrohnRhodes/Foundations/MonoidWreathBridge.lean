@@ -1,14 +1,19 @@
 /-
 Copyright (c) 2026 Aditya Rao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aditya Rao
 -/
-import KrohnRhodes.Foundations.WreathProduct
-import Mathlib.GroupTheory.RegularWreathProduct
+module
+
+public import KrohnRhodes.Defs
+public import KrohnRhodes.Foundations.WreathProduct
+public import Mathlib.GroupTheory.RegularWreathProduct
 
 /-! # Monoid wreath bridge
 
 Bridges Mathlib's group-theoretic `RegularWreathProduct D Q` to the semigroup-theoretic
-`WreathProduct A B X` of `WreathProduct.lean`.
+`WreathProduct A B X` of `KrohnRhodes.Defs` (with its monoid structure from
+`WreathProduct.lean`).
 
 Mathlib's regular wreath product uses the multiplication
 `(a * b).left x = a.left x * b.left (a.right⁻¹ * x)`,
@@ -24,6 +29,8 @@ so we obtain an injective monoid homomorphism `D ≀ᵣ Q →* WreathProduct D Q
 - `regularWreath_to_monoidWreath` : the bridge, a monoid homomorphism.
 - `regularWreath_to_monoidWreath_injective` : injectivity of the bridge.
 -/
+
+@[expose] public section
 
 namespace KrohnRhodes
 
@@ -82,7 +89,7 @@ theorem regularWreath_to_monoidWreath_injective :
   have hfunc : ∀ x, a.left (a.right * x) = b.left (b.right * x) := by
     intro x
     have := congrArg (fun w : WreathProduct D Q Q => w.func x) hab
-    simpa [regularWreath_to_monoidWreath] using this
+    simpa [regularWreath_to_monoidWreath, regularWreathToMonoidWreathFun] using this
   -- Recover equality of `a.left` and `b.left` by substituting `x = a.right⁻¹ * y`.
   have hleft : a.left = b.left := by
     funext y

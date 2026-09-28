@@ -1,0 +1,166 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml v0.4.
+version: "v0.4"
+
+project:
+  name: "Krohn–Rhodes decomposition of finite monoids into aperiodic and simple-group factors"
+  description: >-
+    A Lean 4 and Mathlib formalization of the Krohn–Rhodes prime decomposition
+    theorem for finite monoids, in a form with aperiodic factors: every finite
+    monoid M divides an iterated wreath product of finite monoids, each of which
+    is aperiodic or a simple group, and every simple group among the factors
+    divides M. The proof follows the local-divisor proof of Diekert, Kufleitner
+    and Steinberg. Unlike the classical statement, the aperiodic factors are not
+    reduced to copies of the three-element flip-flop monoid U₂; for an aperiodic
+    M the statement holds with M as its only factor, and in general it separates
+    the group structure of M, as simple groups dividing M, from aperiodic
+    factors.
+  authors:
+    - "Aditya Rao"
+  license: "Apache-2.0"
+  responsible_maintainers:
+    - "Aditya Rao"
+
+classification:
+  arxiv: ["math.GR", "cs.FL"]
+  msc2020: ["20M10", "20M35", "20M20", "68Q70"]
+
+sources:
+  - title: "Algebraic theory of machines. I. Prime decomposition theorem for finite semigroups and machines"
+    authors:
+      - "Kenneth Krohn"
+      - "John Rhodes"
+    id: "https://doi.org/10.1090/S0002-9947-1965-0188316-1"
+    type: "paper"
+    location: "Transactions of the American Mathematical Society 116 (1965), 450–464"
+    relationship: "adapts"
+    note: >-
+      The original theorem: every finite semigroup divides an iterated wreath
+      product of finite simple groups that divide it and copies of the flip-flop
+      monoid. The formal statement is for finite monoids and allows arbitrary
+      finite aperiodic monoids in place of copies of the flip-flop. The proof is
+      that of the second source, not the original one.
+  - title: "The Krohn-Rhodes Theorem and Local Divisors"
+    authors:
+      - "Volker Diekert"
+      - "Manfred Kufleitner"
+      - "Benjamin Steinberg"
+    id: "arXiv:1111.1585v1"
+    type: "paper"
+    location: "Fundamenta Informaticae 116 (2012), 65–77; https://doi.org/10.3233/FI-2012-669"
+    relationship: "adapts"
+    note: >-
+      Theorem numbers refer to arXiv:1111.1585v1. The Lean proof follows
+      Theorem 3.1 (a decomposition through the local divisor at a generator c),
+      Corollary 3.2 (with a minimal generating set and a non-unit c, induction on
+      the size of the monoid, down to groups with the constant maps adjoined),
+      and, as in the proof of Theorem 4.1, Lemma 2.9 (such a group divides a
+      reset monoid wreath the group) and Corollary 2.8 (a finite group divides a
+      wreath product of simple groups that divide it, with Proposition 2.7
+      replaced by the Krasner–Kaloujnine embedding). It is written for left
+      instead of right actions, takes the local divisor on cM ∩ Mc rather than
+      cMc ∪ {c} (the paper notes that both work), and joins towers by
+      associativity of the wreath product up to division. The formal statement
+      is Theorem 4.1 at the level of monoids, with semigroup division, and
+      without its last step (Lemma 2.10 and Example 2.4), which replaces the
+      reset monoids by copies of U₂. The size bounds of Corollaries 3.2 and 4.2
+      are not formalized.
+
+related_formalizations: []
+
+status:
+  scope: >-
+    Formalized, with no sorry: for every finite monoid M in Type, a list of
+    finite monoids, each aperiodic (every H-class is a singleton) or a simple
+    group, such that M divides the right-iterated wreath product of the list
+    (with semigroup division, one level at a time, each level acting on a finite
+    type) and every simple-group factor divides M as a monoid. Not formalized:
+    the reduction of the aperiodic factors to copies of the flip-flop monoid U₂;
+    finite semigroups that are not monoids; monoids in universes other than
+    Type; bounds on the size of the decomposition.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: []
+
+automation:
+  methods:
+    - method: "agent"
+      models:
+        - "Claude Opus 4.7"
+        - "Claude Opus 4.7 (1M context)"
+        - "Claude Opus 4.8 (1M context)"
+        - "Claude Fable 5"
+      framework: "Claude Code"
+      tool_setup: >-
+        Claude Code agents wrote the Lean definitions, statements and proofs
+        between April and June 2026, under the direction of Aditya Rao. The
+        models listed are those named in the Co-Authored-By trailers of the
+        development's commit history, which is not part of this repository. Some
+        commits in that history, including the ones that completed the main
+        proof, carry no model trailer. The code in them was also written by
+        Claude Code agents; only the model used for them was not recorded.
+    - method: "agent"
+      models:
+        - "Claude Opus 5.5"
+      framework: "Claude Code"
+      tool_setup: >-
+        In September 2026 a Claude Code agent extracted the theorem and its
+        dependencies into this repository, revised the documentation, ported the
+        code from Lean 4.28.0 to Lean 4.35.0-rc2 without changing the meaning of
+        any statement,
+        split it into Challenge and Solution modules, and wrote this file. A
+        separate Claude Code session of the same model then reviewed the
+        documentation (see review), and the issues it reported were corrected.
+  notes: >-
+    Aditya Rao directed the work and is responsible for the submission. The
+    proofs were written by AI agents and are checked by Lean's kernel.
+
+fidelity:
+  divergences: >-
+    (1) The aperiodic factors are arbitrary finite aperiodic monoids rather than
+    copies of the flip-flop monoid U₂. The proof produces reset monoids (the
+    identity together with all constant maps on a finite set), each of which
+    embeds in a direct power of U₂, but that step is not formalized; for an
+    aperiodic M the formal statement holds with M as its only factor. (2) The
+    statement is for finite monoids in Type, not for finite semigroups. (3) The
+    tower is stated with semigroup division (a homomorphic image of a
+    subsemigroup), one level at a time: M divides F₁ ≀ B₁ for a finite monoid
+    B₁ acting on a finite set, B₁ divides F₂ ≀ B₂, and so on, with the last
+    base trivial. This is equivalent to M dividing a single iterated wreath
+    product F₁ ≀ (F₂ ≀ (⋯ ≀ (Fₖ ≀ 1))) with suitable finite actions, but the
+    equivalence is not formalized. Diekert, Kufleitner and Steinberg state the
+    theorem for transformation monoids and strong division. (4) The simple-group
+    factors divide M as monoids (each is a quotient of a submonoid of M). (5)
+    Wreath products are written for left actions,
+    (f, a)(g, b) = (x ↦ f(b·x) g(x), ab), the mirror image of the right-action
+    convention of the source.
+
+review:
+  status: "agent-reviewed"
+  reviewers:
+    - "Claude Opus 5.5 (a separate Claude Code session; the same model revised the documentation)"
+  notes: >-
+    A separate Claude Code session (Claude Opus 5.5, the model that also
+    revised the documentation) checked every docstring, the README and this
+    file against the Lean statements and arXiv:1111.1585v1; the 1965 paper was
+    not consulted. The issues it reported were corrected. Mechanical checks run
+    before submission: the build; an axiom audit (propext, Classical.choice and
+    Quot.sound only); leanchecker on every module; and Comparator on
+    comparator.json, with Lean's kernel, NanoDa and con-ron, and in a separate
+    run also lean4lean, con-leche and leanchecker-paranoid. The CI workflow
+    reruns Comparator on every push to main and on every pull request. No
+    independent human review has been performed.
+
+alignment:
+  namespace: "KrohnRhodes"
+  statements:
+    - source: "Krohn–Rhodes (1965), prime decomposition theorem; Diekert–Kufleitner–Steinberg, Theorem 4.1"
+      lean: "KrohnRhodes.krohn_rhodes_prime_decomposition"
+      module: "Challenge"
+      status: "adapted"
+      note: >-
+        Proved in Solution without sorry. The decomposition is stated for
+        finite monoids, with arbitrary finite aperiodic factors in place of
+        copies of U₂; see fidelity.divergences.
+
+acknowledgements: "Built with Lean 4 and Mathlib."
