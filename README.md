@@ -1,4 +1,10 @@
-# Krohn–Rhodes prime decomposition in Lean 4
+# Krohn–Rhodes decomposition of finite monoids into aperiodic and simple-group factors
+
+A Lean 4 formalization of the Krohn–Rhodes decomposition of finite monoids into aperiodic and
+simple-group factors. The aperiodic factors are arbitrary finite aperiodic monoids: unlike the
+classical prime decomposition theorem, they are not reduced to copies of the flip-flop monoid (see
+[What it does not cover](#what-it-does-not-cover)). It is registered in the Palomar registry as
+PALOMAR-2026-09-30-000017; see [Registry entry and citation](#registry-entry-and-citation).
 
 **Theorem.** Let *M* be a finite monoid. There are finite monoids *F*₁, …, *F*ₖ, each either
 aperiodic or a simple group, such that every *F*ᵢ that is a simple group divides *M* as a monoid,
@@ -20,9 +26,6 @@ power of *F*ₖ. A chain as above gives such a single division because
 *A* ≀<sub>*Y*</sub> *B* ≺ *A* ≀<sub>*W*×*Y*</sub> *W* whenever *B* ≺ *W*, where *W* acts on
 *W* × *Y* by *w*·(*w*′, *y*) = (*ww*′, *y*); conversely, a single division gives a chain. This
 equivalence is not formalized. For *k* = 0 the statement says that *M* is trivial.
-
-This is the Krohn–Rhodes theorem with arbitrary aperiodic factors in place of copies of the
-flip-flop monoid; see [What it does not cover](#what-it-does-not-cover).
 
 ## Context
 
@@ -166,6 +169,23 @@ bubblewrap (`bwrap`), as in the CI workflow.
 The Lean definitions, statements and proofs were written by Claude Code agents under the
 direction of Aditya Rao, and the documentation and metadata were revised by a Claude Code agent.
 The models used and the review performed are listed in [`formalization.yaml`](formalization.yaml).
+
+## Registry entry and citation
+
+Commit `1f4a7e39ba2baede5434ac48c7571a442f8d521d` of this repository is registered in the
+[Palomar](https://palomar-registry.org) registry as PALOMAR-2026-09-30-000017, version 1:
+<https://palomar-registry.org/entry?id=PALOMAR-2026-09-30-000017&version=1>. The record covers
+that commit only; later commits are not part of it. The registry's citation of the entry is:
+
+```bibtex
+@misc{palomar-2026-09-30-000017-v1,
+  author = {{Aditya Rao}},
+  title = {{Krohn–Rhodes decomposition of finite monoids into aperiodic and simple-group factors}},
+  year = {2026},
+  howpublished = {Palomar, PALOMAR-2026-09-30-000017 v1},
+  url = {https://palomar-registry.org/entry?id=PALOMAR-2026-09-30-000017&version=1},
+}
+```
 
 ## Changes from the first version
 
